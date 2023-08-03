@@ -7,7 +7,6 @@ Python script(s) to test OpenCV capabilities for motion detection
 ###  To try this creepy little script you need the following libraries:
 
 <br>
-
 #### Operating system dependent libraries
 
 - **OpenCV 4.6+** from here [Releases - OpenCV](https://opencv.org/releases/) - choose your platform. This script was written on Windows. I can't remember what the name of the python wrapper libraries was. If you can't remember or never knew, here is the pip command line and the name:
