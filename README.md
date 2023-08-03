@@ -1,12 +1,11 @@
-#  <img src="resources/webcam.svg" alt="webcam" style="transform:scale(-1, 1); zoom:12%;"/>  Motion-Detection-Tests  <img src="resources/webcam.svg" alt="webcam" style="zoom:12%;" />
+#  <img src="resources/webcam.svg" alt="webcam" style="transform:scale(-1, 1); zoom:12%;"/>       Motion-Detection-Tests       <img src="resources/webcam.svg" alt="webcam" style="zoom:12%;" />
 
 Python script(s) to test OpenCV capabilities for motion detection
 
 <br>
 
-###  To try this creepy little script you need the following libraries:
+###  <img src="resources/webcam.svg" alt="webcam" style="zoom:4%;" /> To try this creepy little script you need the following libraries:
 
-<br>
 #### Operating system dependent libraries
 
 - **OpenCV 4.6+** from here [Releases - OpenCV](https://opencv.org/releases/) - choose your platform. This script was written on Windows. I can't remember what the name of the python wrapper libraries was. If you can't remember or never knew, here is the pip command line and the name:
@@ -61,7 +60,7 @@ This is really a lot of code for a small amount of features.
 
 ------
 
-###  <img src="resources/webcam.svg" alt="webcam" style="zoom:5%;" />  How to see the 3 motion detecting algorithms (ways)
+###  <img src="resources/webcam.svg" alt="webcam" style="zoom:4%;" />  How to see the 3 motion detecting algorithms (ways)
 
 - you only need to change this variable to 1, 2 or 3 in main script:
 
@@ -73,7 +72,7 @@ This is really a lot of code for a small amount of features.
 
 ------
 
-### The most fundamental things I have found and noticed:
+### <img src="resources/webcam.svg" alt="webcam" style="zoom:4%;" /> The most fundamental things I have found and noticed:
 
 - To use the maximum video size of your camera you have to tell OpenCV which backend to use.  The VideoCaptureApi can be set on windows to one of these: 
 
@@ -106,18 +105,19 @@ This is really a lot of code for a small amount of features.
 
 <br>
 
-### These things needs a solution:
+------
+
+### <img src="resources/webcam.svg" alt="webcam" style="zoom:4%;" /> These things needs a solution:
 
 - The image noise of the camera is often recognised as movement. Which is the most effective way to reduce noise? Is it ultimately more effective to take better hardware?
 
 - Motion detection becomes unreliable when the camera is in automatic mode for brightness, contrast, saturation or exposure.  **Solution **found on Windows: by using `cv2.CAP_DSHOW` and set the camera property `cap.set(cv2.CAP_PROP_SETTINGS, 0)` , windows will open a dialog window. 
 
-  
-
-------
 
 <br>
 
-### Some questions are left:
+------
+
+### <img src="resources/webcam.svg" alt="webcam" style="zoom:4%;" /> Question(s) left:
 
 - when using the erase Background feature of OpenCV, a 'ghost image' is always calculated, Even if nothing has changed in the scene.
