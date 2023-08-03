@@ -4,7 +4,7 @@ Python script(s) to test OpenCV capabilities for motion detection
 
 <br>
 
-###  <img src="resources/webcam.svg" alt="webcam" style="zoom:4%;" /> To try this creepy little script you need the following libraries:
+###  <img src="resources/webcam.svg" alt="webcam" style="transform:scale(-1, 1); zoom:4%;" /> To try this creepy little script you need the following libraries:
 
 #### Operating system dependent libraries
 
@@ -60,7 +60,7 @@ This is really a lot of code for a small amount of features.
 
 ------
 
-###  <img src="resources/webcam.svg" alt="webcam" style="zoom:4%;" />  How to see the 3 motion detecting algorithms (ways)
+###  <img src="resources/webcam.svg" alt="webcam" style="transform:scale(-1, 1); zoom:4%;" />  How to see the 3 motion detecting algorithms (ways)
 
 - you only need to change this variable to 1, 2 or 3 in main script:
 
@@ -72,7 +72,7 @@ This is really a lot of code for a small amount of features.
 
 ------
 
-### <img src="resources/webcam.svg" alt="webcam" style="zoom:4%;" /> The most fundamental things I have found and noticed:
+### <img src="resources/webcam.svg" alt="webcam" style="transform:scale(-1, 1); zoom:4%;" /> The most fundamental things I have found and noticed:
 
 - To use the maximum video size of your camera you have to tell OpenCV which backend to use.  The VideoCaptureApi can be set on windows to one of these: 
 
@@ -102,12 +102,14 @@ This is really a lot of code for a small amount of features.
   ```python
   grayImg = cv2.GaussianBlur(grayImg, (21, 21), 0)
   ```
+  
+- If I increase the exposure of my webcam, the frame rate I get from the camera decreases noticeably.
 
 <br>
 
 ------
 
-### <img src="resources/webcam.svg" alt="webcam" style="zoom:4%;" /> These things needs a solution:
+### <img src="resources/webcam.svg" alt="webcam" style="transform:scale(-1, 1); zoom:4%;" /> These things needs a solution:
 
 - The image noise of the camera is often recognised as movement. Which is the most effective way to reduce noise? Is it ultimately more effective to take better hardware?
 
@@ -118,6 +120,6 @@ This is really a lot of code for a small amount of features.
 
 ------
 
-### <img src="resources/webcam.svg" alt="webcam" style="zoom:4%;" /> Question(s) left:
+### <img src="resources/webcam.svg" alt="webcam" style="transform:scale(-1, 1); zoom:4%;" /> Question(s) left:
 
 - when using the erase Background feature of OpenCV, a 'ghost image' is always calculated, Even if nothing has changed in the scene.

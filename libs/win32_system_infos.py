@@ -1,6 +1,10 @@
 import ctypes
 import win32api # pip install pywin32
+import win32con
+import win32gui
+from win32con import SM_CXSCREEN, SM_CYSCREEN
 import pygetwindow as gw
+
 
 def get_monitor_info():
 	monitors     = []
@@ -36,27 +40,38 @@ def is_multi_monitor():
 def get_dpi():
 	this_monitors = []
 	shcore   = ctypes.windll.shcore
-	monitors = win32api.EnumDisplayMonitors()
-	hresult  = shcore.SetProcessDpiAwareness(1)    # Support high DPI displays
-	assert hresult == 0
+	monitors = win32api.EnumDisplayMonitors(None, None)
+	#hresult  = shcore.SetProcessDpiAwareness(1)    # Support high DPI displays
+	#assert hresult == 0
 	dpiX = ctypes.c_uint()
 	dpiY = ctypes.c_uint()
 	for i, monitor in enumerate(monitors):
+
+		print(monitor)
 		shcore.GetDpiForMonitor(monitor[0].handle, 0,	ctypes.byref(dpiX), ctypes.byref(dpiY))
-		this_monitors.append(dpiX.value/96)
+		dpi = dpiX.value
+		this_monitors.append(dpi)
 	return this_monitors
 
 
-def get_window_positions():
-  windows = gw.getWindows()
-  window_positions = []
+def get_screen_size():
+    screen_width  = win32api.GetSystemMetrics(win32con.SM_CXFULLSCREEN)
+    screen_height = win32api.GetSystemMetrics(win32con.SM_CYFULLSCREEN)
+    return screen_width, screen_height
 
-  for window in windows:
-    window_info = {
-      "name": window.title,
-      "position": (window.left, window.top),
-      "size": (window.width, window.height)
-    }
-    window_positions.append(window_info)
 
-  return window_positions
+def get_window_positions(winTitle):
+	windows = gw.getWindowsWithTitle(winTitle)
+	window_positions = []
+
+
+	for window in windows:
+			print(window)
+			window_info = {
+      	"name"    : window.title,
+				"pos"     : (window.left, window.top),
+				"size"    : (window.width, window.height)
+    	}
+			window_positions.append(window_info)
+
+	return window_positions

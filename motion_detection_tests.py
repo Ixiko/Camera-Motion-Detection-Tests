@@ -1,11 +1,13 @@
 import sys
 import cv2
+import ctypes
 import imutils
 import numpy as np
 from mjpeg_streamer import MjpegServer, Stream
 
 # Import script own module(s)
-from libs import system_infos as sysinfo
+from libs import sysinfo
+from libs import lan
 from libs import image_manipulations as iman
 from sklearn.multiclass import available_if
 
@@ -61,6 +63,9 @@ def start_capture(webcam_id, cam_settings):
   print("Settings:                   ", cap_settings)
 
   return cap, cap_width, cap_height
+
+def nothing(x):
+ pass
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # calculates difference between 3 images
@@ -138,8 +143,8 @@ def eraseBackground_motion(motion_detector, grayImg, originalFrame):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # find contours using imageDiff
-def contour_motion(frame, firstFrame, lastFrame, grayImg, minArea):
-  contours, imgDiff, threshImg = get_contours(firstFrame, lastFrame, grayImg, 15) #, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+def contour_motion(frame, firstFrame, lastFrame, grayImg, minArea, threshold):
+  contours, imgDiff, threshImg = get_contours(firstFrame, lastFrame, grayImg, threshold) #, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
   contours_count = len(contours)
   frame = iman.draw_rec_contours(contours, minArea, frame)
 
@@ -159,7 +164,7 @@ def contour_motion(frame, firstFrame, lastFrame, grayImg, minArea):
 
 # -------------------------------------------------------------------------
 # MAIN PROCESS
-def motion_detection_stream(video_stream_url, webcam_id=0, threshold=400):
+def motion_detection_stream(video_stream_url, webcam_id=0, threshold=20):
   """Description:
 
   This function takes a URL of a video stream as input and
@@ -193,6 +198,7 @@ def motion_detection_stream(video_stream_url, webcam_id=0, threshold=400):
   im_y            = 50                                       # positioning for cv windows
   rec_tl          = (16, 32)
   rec_br          = (200, 120)
+  last_threshold  = threshold
   lower = np.array([0, 28, 40], dtype = 'uint8')             # lower color for mask_motion
   upper = np.array([20, 255, 255], dtype = 'uint8')          # upper color for mask_motion
 
@@ -228,20 +234,40 @@ def motion_detection_stream(video_stream_url, webcam_id=0, threshold=400):
     CCCounts = 0
 
   # creates named windows and move them for a good layout
-  scaled_w = int(cam_width/3)
-  scaled_h = int(cam_height/3)
   cv2.namedWindow('Gray Image')
   cv2.namedWindow('Thresh')
   cv2.namedWindow('Image Difference')
-  cv2.resizeWindow('Gray Image'        , scaled_w, scaled_h)
-  cv2.resizeWindow('Thresh'            , scaled_w, scaled_h)
-  cv2.resizeWindow('Image Difference'  , scaled_w, scaled_h)
   if streaming == False:
     cv2.namedWindow('Camera')
+    cv2.resizeWindow('Camera'          , cam_width, cam_height)
+    cv2.createTrackbar('threshold','Camera', 0, 100, nothing)
+    cv2.setTrackbarPos('threshold', 'Camera', threshold)
+    shcore   = ctypes.windll.shcore
+    hresult  = shcore.SetProcessDpiAwareness(2)    # Support high DPI displays
+    assert hresult == 0
+    win = sysinfo.get_window_positions('Camera')
+    dpi = sysinfo.get_dpi()
+    tbh = 0
+    if win is not None:
+      title = win[0]['name']
+      tbh = win[0]['size'][1] - cam_height
+      sw, sh = sysinfo.get_screen_size()
+
+      sw1 = ctypes.windll.user32.GetSystemMetrics(0)
+      sh1 = ctypes.windll.user32.GetSystemMetrics(1)
+      print(f"screen_w{sw1} screen_h{sh1}")
+      print(f"title: {title} dpi {dpi} tbh: {tbh} camheight: {cam_height} h{im_y + cam_height + tbh}")
+
+    scaled_w = int((cam_width+2)/3)
+    scaled_h = int((cam_height+2)/3)
+    cv2.resizeWindow('Gray Image'        , scaled_w, scaled_h)
+    cv2.resizeWindow('Thresh'            , scaled_w, scaled_h)
+    cv2.resizeWindow('Image Difference'  , scaled_w, scaled_h)
+
     cv2.moveWindow('Camera'            , im_x                 , im_y)
-    cv2.moveWindow('Gray Image'        , im_x                 , im_y + cam_height + 1)
-    cv2.moveWindow('Image Difference'  , im_x +   scaled_w + 1, im_y + cam_height + 1)
-    cv2.moveWindow('Thresh'            , im_x + 2*scaled_w + 2, im_y + cam_height + 1)
+    cv2.moveWindow('Gray Image'        , im_x                 , im_y + cam_height + tbh + 7)
+    cv2.moveWindow('Image Difference'  , im_x +   scaled_w + 0, im_y + cam_height + tbh + 7)
+    cv2.moveWindow('Thresh'            , im_x + 2*scaled_w + 0, im_y + cam_height + tbh + 7)
   else: # Streamwindow on Monitor1 and the others on Monitor2
     cv2.moveWindow('Gray Image'        , 3845, 100)
     cv2.moveWindow('Thresh'            , 3845, 100 +   scaled_h + 1)
@@ -272,10 +298,10 @@ def motion_detection_stream(video_stream_url, webcam_id=0, threshold=400):
         firstFrame = grayImg
         continue
 
-      # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       # Mode 1: gets contours of a moving object by comparing images
       if analyse_mode == 1:
-        frame, imgGray, imgThresh, imgDiff, cc_count = contour_motion(frame, firstFrame, lastFrame, grayImg, minArea)
+        frame, imgGray, imgThresh, imgDiff, cc_count = contour_motion(frame, firstFrame, lastFrame, grayImg, minArea, threshold)
         lastFrame = grayImg
         if cc_count is not None and cc_count > 0:
           CCSum += cc_count
@@ -286,12 +312,12 @@ def motion_detection_stream(video_stream_url, webcam_id=0, threshold=400):
 
         # paints a rectangle canvas element
         rect_canvas = np.zeros_like(frame, dtype=np.uint8)
-        #rect_canvas[:, :, 3] = 128  # Alpha channel for opacity
         cv2.rectangle(rect_canvas, (rec_tl[0],rec_tl[1])   , (rec_br[0], rec_tl[1]+22), (0, 0, 255)    , thickness=cv2.FILLED)
         cv2.rectangle(rect_canvas, (rec_tl[0],rec_tl[1]+23), (rec_br[0], rec_br[1])   , (255, 255, 255), thickness=cv2.FILLED)
         frame = cv2.addWeighted(frame, 1, rect_canvas, 0.8, 0)
-        cv2.rectangle(rect_canvas, (rec_tl[0],rec_tl[1]) , (rec_br[0], rec_tl[1]+22), (0, 0, 255), thickness=cv2.FILLED)
-        cv2.rectangle(frame      , rec_tl, rec_br, (0, 0, 255)    , thickness=2)
+
+        cv2.rectangle(rect_canvas, (rec_tl[0],rec_tl[1])   , (rec_br[0], rec_tl[1]+22), (0, 0, 255)    , thickness=cv2.FILLED)
+        cv2.rectangle(frame      , rec_tl                  , rec_br                   , (0, 0, 255)    , thickness=2)
 
         cv2.putText(frame , "Countour statistic", (20, 50) , cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
         cv2.putText(frame , "min:"              , (20, 75) , cv2.FONT_HERSHEY_PLAIN  , 1.0, (0, 0, 0)      , 1)
@@ -306,6 +332,17 @@ def motion_detection_stream(video_stream_url, webcam_id=0, threshold=400):
         cv2.imshow('Gray Image'      , imutils.resize(imgGray     , scaled_w, scaled_h))
         cv2.imshow('Thresh'          , imutils.resize(imgThresh   , scaled_w, scaled_h))
         cv2.imshow('Image Difference', imutils.resize(imgDiff     , scaled_w, scaled_h))
+
+        # get trackbar position
+        tsd =  cv2.getTrackbarPos('threshold','Camera')
+        if last_threshold != tsd:
+          threshold = tsd
+          last_threshold = tsd
+          threshold = tsd
+          CCSum = CCCounts = maxCC = avgCC = 0
+          minCC = None
+
+
 
       # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       # Mode 2: mask skin colors
@@ -325,6 +362,7 @@ def motion_detection_stream(video_stream_url, webcam_id=0, threshold=400):
       stream.set_frame(frame)
     else:
       cv2.imshow('Camera', frame)
+
 
     # Wait for a key press. If the `q` key was pressed, break out of the loop.
     key = cv2.waitKey(1) & 0xFF
@@ -346,9 +384,9 @@ def motion_detection_stream(video_stream_url, webcam_id=0, threshold=400):
 # -----------------------------------------------------------
 if __name__ == "__main__":
 
-  local_ip = sysinfo.get_local_ip()
+  local_ip = lan.get_local_ip()
   if local_ip is None:
     local_ip = "no_ip"
-  motion_detection_stream(local_ip, 0, 70)
+  motion_detection_stream(local_ip, 0, 20)
 
 

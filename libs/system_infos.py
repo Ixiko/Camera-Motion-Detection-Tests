@@ -1,17 +1,5 @@
-import sys
 import socket
 
-if sys.platform == "win32":
- 	import libs.win32_system_infos as sysinfo
-
-elif sys.platform == "darwin":
-    import libs.macOS_system_infos as sysinfo
-
-elif sys.platform == "linux":
-    import libs.linux_system_infos as sysinfo
-
-else:
-    raise NotImplementedError("Operating system is not supported")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get the IP address of the client
