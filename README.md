@@ -1,4 +1,4 @@
-#  <img src="resources/webcam.svg" alt="webcam" style="transform:scale(-1, 1); zoom:12%;"/>       Motion-Detection-Tests       <img src="resources/webcam.svg" alt="webcam" style="zoom:12%;" />
+<center><H1><img src="resources/webcam.svg" alt="webcam" style="transform:scale(-1, 1); zoom:12%;"/>       Motion-Detection-Tests      <img src="resources/webcam.svg" alt="webcam" style="zoom:12%;"/> </H1> </center>
 
 Python script(s) to test OpenCV capabilities for motion detection
 
